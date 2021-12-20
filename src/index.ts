@@ -1,12 +1,9 @@
 import 'chromedriver';
 import {Builder, By, WebDriver} from 'selenium-webdriver';
+import {getMessage, sendMessage} from "./react";
+import {sleep, chatURL} from "./util";
+import moduleHandler from './modules'
 
-const chatURL = 'https://talk.cafe.naver.com/channels/953270669329';
-const adminID = 'PPTSTUDIO'
-
-async function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 async function waitLoad(driver: WebDriver) {
     await driver.wait(function () {
@@ -24,35 +21,6 @@ async function waitLoad(driver: WebDriver) {
     }
 }
 
-function getMessage(driver: WebDriver) {
-    return new Promise<{ writer: string, message: string }>(async (resolve, reject) => {
-        while (true) {
-            try {
-                await driver.executeScript('document.querySelector("li.log_friend:not(.read)").innerText')
-                try {
-                    const writer: string = await driver.executeScript('return document.querySelector("li.log_friend:not(.read)").querySelector("strong").innerText')
-                    const message: string = await driver.executeScript('return document.querySelector("li.log_friend:not(.read)").querySelector("p").innerText')
-                    resolve({writer, message})
-                    await driver.executeScript('document.querySelector("li.log_friend:not(.read)").remove()')
-                    return
-                } catch (e) {
-                    await driver.executeScript('document.querySelector("li.log_friend:not(.read)").remove()')
-                }
-            } catch (e) {
-                await sleep(100)
-            }
-        }
-    })
-}
-
-async function sendMessage(driver: WebDriver, message: string) {
-    const inputBox = await driver.findElement(By.css('.msg_input'))
-    const sendButton = await driver.findElement(By.css('.btn_send'))
-    await inputBox.sendKeys(message);
-    await sleep(100)
-    await sendButton.click();
-}
-
 async function init(driver: WebDriver) {
     while (true) {
         try {
@@ -61,10 +29,6 @@ async function init(driver: WebDriver) {
             return
         }
     }
-}
-
-function isAdmin(writer: string) {
-    return writer === adminID
 }
 
 async function main() {
@@ -81,13 +45,7 @@ async function main() {
     await sendMessage(driver, '눈이 내려요!')
     while (true) {
         const {writer, message} = await getMessage(driver)
-        if (message === '안녕') {
-            await sendMessage(driver, '안녕하세요!')
-        }
-        if (isAdmin(writer) && message === '종료') {
-            await sendMessage(driver, '눈이 녹았어요... 곧 돌아올게요!')
-            break
-        }
+        await moduleHandler(driver, writer, message)
     }
 }
 

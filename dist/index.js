@@ -1,12 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 require("chromedriver");
 const selenium_webdriver_1 = require("selenium-webdriver");
-const chatURL = 'https://talk.cafe.naver.com/channels/953270669329';
-const adminID = 'PPTSTUDIO';
-async function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+const react_1 = require("./react");
+const util_1 = require("./util");
+const modules_1 = __importDefault(require("./modules"));
 async function waitLoad(driver) {
     await driver.wait(function () {
         return driver.executeScript('return document.readyState').then((readyState) => {
@@ -19,38 +20,9 @@ async function waitLoad(driver) {
             break;
         }
         catch (e) {
-            await sleep(500);
+            await (0, util_1.sleep)(500);
         }
     }
-}
-function getMessage(driver) {
-    return new Promise(async (resolve, reject) => {
-        while (true) {
-            try {
-                await driver.executeScript('document.querySelector("li.log_friend:not(.read)").innerText');
-                try {
-                    const writer = await driver.executeScript('return document.querySelector("li.log_friend:not(.read)").querySelector("strong").innerText');
-                    const message = await driver.executeScript('return document.querySelector("li.log_friend:not(.read)").querySelector("p").innerText');
-                    resolve({ writer, message });
-                    await driver.executeScript('document.querySelector("li.log_friend:not(.read)").remove()');
-                    return;
-                }
-                catch (e) {
-                    await driver.executeScript('document.querySelector("li.log_friend:not(.read)").remove()');
-                }
-            }
-            catch (e) {
-                await sleep(100);
-            }
-        }
-    });
-}
-async function sendMessage(driver, message) {
-    const inputBox = await driver.findElement(selenium_webdriver_1.By.css('.msg_input'));
-    const sendButton = await driver.findElement(selenium_webdriver_1.By.css('.btn_send'));
-    await inputBox.sendKeys(message);
-    await sleep(100);
-    await sendButton.click();
 }
 async function init(driver) {
     while (true) {
@@ -62,9 +34,6 @@ async function init(driver) {
         }
     }
 }
-function isAdmin(writer) {
-    return writer === adminID;
-}
 async function main() {
     const driver = await new selenium_webdriver_1.Builder().forBrowser('chrome').build();
     await driver.get('https://nid.naver.com/nidlogin.login');
@@ -73,19 +42,13 @@ async function main() {
             return host === 'www.naver.com';
         });
     });
-    await driver.get(chatURL);
+    await driver.get(util_1.chatURL);
     await waitLoad(driver);
     await init(driver);
-    await sendMessage(driver, '눈이 내려요!');
+    await (0, react_1.sendMessage)(driver, '눈이 내려요!');
     while (true) {
-        const { writer, message } = await getMessage(driver);
-        if (message === '안녕') {
-            await sendMessage(driver, '안녕하세요!');
-        }
-        if (isAdmin(writer) && message === '종료') {
-            await sendMessage(driver, '눈이 녹았어요... 곧 돌아올게요!');
-            break;
-        }
+        const { writer, message } = await (0, react_1.getMessage)(driver);
+        await (0, modules_1.default)(driver, writer, message);
     }
 }
 main();
