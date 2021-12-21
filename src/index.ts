@@ -3,6 +3,7 @@ import {Builder, By, WebDriver} from 'selenium-webdriver';
 import {getMessage, sendMessage} from "./react";
 import {sleep, chatURL} from "./util";
 import moduleHandler from './modules'
+import fs from "fs";
 
 
 async function waitLoad(driver: WebDriver) {
