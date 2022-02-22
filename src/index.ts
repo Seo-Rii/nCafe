@@ -3,6 +3,8 @@ import {Builder, By, WebDriver} from 'selenium-webdriver';
 import {getMessage, sendMessage} from "./react";
 import {sleep, chatURL} from "./util";
 import moduleHandler from './modules'
+import _ from "lodash";
+import fetch from "node-fetch";
 import fs from "fs";
 
 

@@ -35,11 +35,11 @@ export default async function (driver: WebDriver, writer: string, message: strin
                 return true
             }
             if (num > target) {
-                await sendMessage(driver, `커요!`);
+                await sendMessage(driver, `${num}보다 작아요!`);
                 return true
             }
             if (num < target) {
-                await sendMessage(driver, `작아요!`);
+                await sendMessage(driver, `${num}보다 커요!`);
                 return true
             }
         }
